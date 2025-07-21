@@ -138,7 +138,9 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+
+    <div className="min-h-screen bg-black dark
+     text-foreground flex flex-col">
       {/* Top Bar */}
       <div className="flex justify-between items-center p-4 border-b border-border">
         <span className="text-lg font-semibold">SessionID-{sessionId}</span>
@@ -234,7 +236,6 @@ const App = () => {
           </Button>
           {pdfPath && (
             <div>
-              <span>{pdfPath.split(/[\\/]/).pop()}</span>
               <Button onClick={() => setPdfPath(null)}>Remove</Button>
             </div>
           )}
@@ -255,7 +256,7 @@ const App = () => {
             <Send className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2 text-center">
+        <p className="text-2xs text-muted-foreground m-10 text-center">
           RAGBOT can make mistakes. Consider checking important information.
         </p>
       </div>
