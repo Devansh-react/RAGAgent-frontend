@@ -49,7 +49,7 @@ const suggestions = [
   }
 ];
 
-const FILTER_TABS = ["All", "Text", "Image", "Video", "Music", "Analytics"];
+const FILTER_TABS = ["All", "Text", "Image", "Summary", "Q&A", "Code", "Analytics"];
 
 const App = () => {
   const [message, setMessage] = useState('');
@@ -112,7 +112,7 @@ const App = () => {
       { id: Date.now().toString(), type: 'user', content: message, timestamp: new Date(), source: messageType },
     ]);
     setMessage('');
-    setSelectedFile(null);
+    // setSelectedFile(null);
     setMessageType(undefined);
 
     try {
@@ -234,11 +234,6 @@ const App = () => {
           <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} title="Upload PDF">
             <Upload className="w-4 h-4" />
           </Button>
-          {pdfPath && (
-            <div>
-              <Button onClick={() => setPdfPath(null)}>Remove</Button>
-            </div>
-          )}
           <Input
             value={message}
             onChange={e => setMessage(e.target.value)}
@@ -251,15 +246,19 @@ const App = () => {
             onClick={sendMessage}
             disabled={!message.trim() && !pdfPath}
             size="icon"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="bg-primary text-primary-foreground hover:bg-primary/120"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-2xs text-muted-foreground m-10 text-center">
+        <p className="text-3xs text-muted-foreground m-5 text-center">
           RAGBOT can make mistakes. Consider checking important information.
         </p>
       </div>
+      <footer className="w-full text-center py-4 text-xs text-muted-foreground bg-background border-t border-border">
+        &copy; {new Date().getFullYear()} <span className="font-semibold text-primary">Dotsquares</span> &mdash; Your AI Chatbot Companion,Made with ❤️
+      </footer>
+
     </div>
   );
 };
