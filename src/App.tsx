@@ -6,10 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 
-// Backend URL setup
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-// Session id utility
 function getOrCreateSessionId() {
   let sessionId = localStorage.getItem("chat_session_id");
   if (!sessionId) {
@@ -56,7 +54,6 @@ const App = () => {
   const { toast } = useToast();
   const [sessionId] = useState(getOrCreateSessionId());
 
-  // Upload PDF and store returned backend path for session
   const uploadPDF = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -138,40 +135,42 @@ const App = () => {
     <div className="min-h-screen bg-black dark text-foreground flex flex-col">
       {/* Top Bar */}
       <div className="flex justify-between items-center p-4 border-b border-border">
-        <span className="text-lg font-semibold">SessionID-{pdfPath}</span>
+        <span className="text-lg font-semibold max-w-[70vw] truncate">SessionID-{pdfPath}</span>
         <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-sm">Gemini-2.5-flash</span>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center">
-        <div className="flex flex-col items-center">
+      <main className="flex-1 flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col items-center w-full px-2 sm:px-0">
           <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4 mt-6">
             <Brain className="w-6 h-6 text-primary-foreground" />
           </div>
-          <h2 className="text-5xl font-semibold mb-2">How can I help you today?</h2>
-          <p className="text-muted-foreground max-w-xl text-center mb-10">
+          <h2 className="text-3xl sm:text-5xl font-semibold mb-2 text-center">How can I help you today?</h2>
+          <p className="text-muted-foreground max-w-xl text-center mb-10 text-base sm:text-lg">
             An intelligent assistant powered by LangGraph and RAG.
           </p>
 
-          <div className="flex flex-row gap-4 mb-8">
+          {/* Suggestions */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-8 w-full items-center justify-center">
             {suggestions.map((suggestion, i) => (
               <Card
                 key={i}
-                className="w-64 cursor-pointer transition-colors hover:bg-chat-hover border-border"
+                className="w-full sm:w-64 cursor-pointer transition-colors hover:bg-chat-hover border-border"
                 onClick={() => handleSuggestion(suggestion.type as any)}
               >
                 <CardContent className="p-4 flex flex-col items-center pointer-events-auto">
                   <div className={`w-10 h-10 rounded-lg mb-3 flex items-center justify-center ${suggestion.color}`}>
                     {suggestion.icon}
                   </div>
-                  <h4 className="font-medium mb-1">{suggestion.title}</h4>
+                  <h4 className="font-medium mb-1 text-center">{suggestion.title}</h4>
                   <p className="text-sm text-muted-foreground text-center">{suggestion.subtitle}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="flex flex-row gap-2 mb-8">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-8 justify-center">
             {FILTER_TABS.map(tab => (
               <span
                 key={tab}
@@ -185,23 +184,25 @@ const App = () => {
 
         {/* Message Bubbles */}
         {messages.length > 0 && (
-          <div className="w-full max-w-2xl mx-auto mb-8 flex flex-col gap-3"
-          >
+          <div className="w-full sm:max-w-2xl mx-auto mb-8 flex flex-col gap-3 px-1 sm:px-0">
             {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`
-                    w-fit max-w-2xl
+                  className={
+                    `
+                    w-fit max-w-[96vw] sm:max-w-2xl
                     rounded-2xl
-                    px-5 py-3
+                    px-3 sm:px-5 py-2 sm:py-3
                     mb-1
                     shadow
+                    text-base
+                    break-words
                     ${msg.type === 'user'
-                      ? 'bg-primary'
-                      : 'bg-secondary'}
-                      ] text-black mr-auto'}
-                  `}
-                  style={{ minWidth: '64px' }}
+                      ? 'bg-gray-200 text-black ml-auto'
+                      : 'bg-[#182235] text-white mr-auto'}
+                    `
+                  }
+                  style={{ minWidth: '56px' }}
                 >
                   {msg.source && (
                     <div className="text-2xs text-muted-foreground mb-1 flex items-center">
@@ -241,7 +242,7 @@ const App = () => {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-secondary text-foreground rounded-2xl px-5 py-3 mb-1 shadow w-fit max-w-2xl">
+                <div className="bg-[#182235] text-white rounded-2xl px-3 sm:px-5 py-2 sm:py-3 mb-1 shadow w-fit max-w-[90vw] sm:max-w-2xl">
                   <span>...</span>
                 </div>
               </div>
@@ -251,12 +252,12 @@ const App = () => {
       </main>
 
       {/* Bottom Chat Input Bar */}
-      <div className="border-t border-border p-4 bg-background">
-        <div className="max-w-3xl mx-auto flex items-center space-x-2">
+      <div className="border-t border-border p-2 sm:p-4 bg-background">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full">
           {selectedFile && (
-            <div className="p-2 bg-primary/10 rounded-lg flex items-center space-x-2">
+            <div className="p-2 bg-primary/10 rounded-lg flex items-center space-x-2 mb-2 sm:mb-0 w-full sm:w-auto">
               <FileText className="w-4 h-4 text-primary" />
-              <span className="text-sm">{selectedFile.name}</span>
+              <span className="text-sm truncate">{selectedFile.name}</span>
               <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
                 Remove
               </Button>
@@ -271,7 +272,7 @@ const App = () => {
             onChange={e => setMessage(e.target.value)}
             placeholder="Type your message here..."
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            className="pr-12 bg-chat-input border-border placeholder:text-muted-foreground placeholder:text-lg h-14"
+            className="pr-12 bg-gray-200 text-black border-border placeholder:text-muted-foreground placeholder:text-lg h-14 w-full"
           />
           <Button
             onClick={sendMessage}
