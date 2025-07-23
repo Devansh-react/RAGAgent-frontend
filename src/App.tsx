@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import ReactMarkdown from 'react-markdown';
 
+// Backend URL setup
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-// Generate or persist session id
+// Session id utility
 function getOrCreateSessionId() {
   let sessionId = localStorage.getItem("chat_session_id");
   if (!sessionId) {
@@ -15,14 +17,6 @@ function getOrCreateSessionId() {
     localStorage.setItem("chat_session_id", sessionId);
   }
   return sessionId;
-}
-
-interface Message {
-  id: string;
-  type: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  source?: 'pdf' | 'web' | 'llm';
 }
 
 const suggestions = [
@@ -54,7 +48,7 @@ const FILTER_TABS = ["All", "Text", "Image", "Summary", "Q&A", "Code", "Analytic
 const App = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pdfPath, setPdfPath] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<'pdf' | 'web' | 'llm' | undefined>();
@@ -62,7 +56,7 @@ const App = () => {
   const { toast } = useToast();
   const [sessionId] = useState(getOrCreateSessionId());
 
-  // Step 1: Upload PDF and store returned backend path for session
+  // Upload PDF and store returned backend path for session
   const uploadPDF = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -77,7 +71,6 @@ const App = () => {
     if (file && file.type === 'application/pdf') {
       setSelectedFile(file);
       setMessageType('pdf');
-      // Directly upload and save path (mimics streamlit sidebar PDF uploader)
       try {
         const uploadedPath = await uploadPDF(file);
         setPdfPath(uploadedPath);
@@ -96,23 +89,27 @@ const App = () => {
     else setMessageType(type);
   };
 
-  // Step 2: Chat
   const sendMessage = async () => {
     if (!message.trim() && !pdfPath) return;
     setIsLoading(true);
 
-    const payload = {
+    const payload: any = {
       session_id: sessionId,
       User_message: message,
-      pdf_path: pdfPath // Only uses PDF path from upload
+      pdf_path: pdfPath
     };
 
     setMessages(prev => [
       ...prev,
-      { id: Date.now().toString(), type: 'user', content: message, timestamp: new Date(), source: messageType },
+      {
+        id: Date.now().toString(),
+        type: 'user',
+        content: message,
+        timestamp: new Date(),
+        source: messageType,
+      },
     ]);
     setMessage('');
-    // setSelectedFile(null);
     setMessageType(undefined);
 
     try {
@@ -138,16 +135,14 @@ const App = () => {
   };
 
   return (
-
-    <div className="min-h-screen bg-black dark
-     text-foreground flex flex-col">
+    <div className="min-h-screen bg-black dark text-foreground flex flex-col">
       {/* Top Bar */}
       <div className="flex justify-between items-center p-4 border-b border-border">
-        <span className="text-lg font-semibold">SessionID-{sessionId}</span>
+        <span className="text-lg font-semibold">SessionID-{pdfPath}</span>
         <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-sm">Gemini-2.5-flash</span>
       </div>
 
-      {/* Centered Main Content */}
+      {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4 mt-6">
@@ -163,9 +158,9 @@ const App = () => {
               <Card
                 key={i}
                 className="w-64 cursor-pointer transition-colors hover:bg-chat-hover border-border"
-                onClick={() => handleSuggestion(suggestion.type as 'pdf' | 'web' | 'llm')}
+                onClick={() => handleSuggestion(suggestion.type as any)}
               >
-                <CardContent className="p-4 flex flex-col items-center">
+                <CardContent className="p-4 flex flex-col items-center pointer-events-auto">
                   <div className={`w-10 h-10 rounded-lg mb-3 flex items-center justify-center ${suggestion.color}`}>
                     {suggestion.icon}
                   </div>
@@ -188,28 +183,65 @@ const App = () => {
           </div>
         </div>
 
-        {/* Message bubbles (show only if there are messages) */}
+        {/* Message Bubbles */}
         {messages.length > 0 && (
-          <div className="w-full max-w-2xl mx-auto mb-8 flex flex-col gap-3">
+          <div className="w-full max-w-2xl mx-auto mb-8 flex flex-col gap-3"
+          >
             {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xl rounded-lg p-4 ${msg.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                <div
+                  className={`
+                    w-fit max-w-2xl
+                    rounded-2xl
+                    px-5 py-3
+                    mb-1
+                    shadow
+                    ${msg.type === 'user'
+                      ? 'bg-primary'
+                      : 'bg-secondary'}
+                      ] text-black mr-auto'}
+                  `}
+                  style={{ minWidth: '64px' }}
+                >
                   {msg.source && (
-                    <div className="text-2xs text-muted-foreground mb-2 flex items-center">
+                    <div className="text-2xs text-muted-foreground mb-1 flex items-center">
                       {msg.source === 'pdf' && <Upload className="w-3 h-3 mr-1" />}
                       {msg.source === 'web' && <Search className="w-3 h-3 mr-1" />}
                       {msg.source === 'llm' && <Brain className="w-3 h-3 mr-1" />}
                       {msg.source?.toUpperCase()} Response
                     </div>
                   )}
-                  <p className="text-1xl relative">{msg.content}</p>
-                  <div className="text-xs text-muted-foreground mt-2 `absolute bottom-2 right-4 text-primary-foreground`}">{msg.timestamp.toLocaleTimeString()}</div>
+                  <div className="prose prose-invert max-w-none text-base break-words">
+                    <ReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          if (inline) {
+                            return (
+                              <code className="px-1 py-0.5 rounded bg-gray-800 text-pink-300" {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
+                          return (
+                            <pre className="bg-gray-900 text-white p-4 rounded my-2 text-sm overflow-x-auto">
+                              <code className={className} {...props}>{children}</code>
+                            </pre>
+                          );
+                        }
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2 text-right">
+                    {msg.timestamp?.toLocaleTimeString()}
+                  </div>
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-secondary text-foreground rounded-lg p-4 max-w-xl">
+                <div className="bg-secondary text-foreground rounded-2xl px-5 py-3 mb-1 shadow w-fit max-w-2xl">
                   <span>...</span>
                 </div>
               </div>
@@ -241,7 +273,6 @@ const App = () => {
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
             className="pr-12 bg-chat-input border-border placeholder:text-muted-foreground placeholder:text-lg h-14"
           />
-
           <Button
             onClick={sendMessage}
             disabled={!message.trim() && !pdfPath}
@@ -256,9 +287,8 @@ const App = () => {
         </p>
       </div>
       <footer className="w-full text-center py-4 text-xs text-muted-foreground bg-background border-t border-border">
-        &copy; {new Date().getFullYear()} <span className="font-semibold text-primary">Dotsquares</span> &mdash; Your AI Chatbot Companion,Made with ❤️
+        &copy; {new Date().getFullYear()} <span className="font-semibold text-primary">Dotsquares</span> &mdash; Your AI Chatbot Companion, Made with ❤️
       </footer>
-
     </div>
   );
 };
