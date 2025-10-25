@@ -215,7 +215,19 @@ const App = () => {
                   <div className="prose prose-invert max-w-none text-base break-words">
                     <ReactMarkdown
                       components={{
-                        code({ node, inline, className, children, ...props }) {
+                        code({
+                          node,
+                          inline,
+                          className,
+                          children,
+                          ...props
+                        }: {
+                          node: any;
+                          inline?: boolean;
+                          className?: string;
+                          children: React.ReactNode;
+                          [key: string]: any;
+                        }) {
                           if (inline) {
                             return (
                               <code className="px-1 py-0.5 rounded bg-gray-800 text-pink-300" {...props}>
